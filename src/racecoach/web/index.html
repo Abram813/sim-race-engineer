@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>RaceCoach — AC / ACC telemetry coach</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">RC</span>
+        <div>
+          <h1>RaceCoach</h1>
+          <p>Distance-based coaching for Assetto Corsa and ACC</p>
+        </div>
+      </div>
+      <div class="topbar-meta">
+        <span id="offline-badge" class="badge">Local only</span>
+        <span id="demo-status" class="badge badge-muted">Loading demo…</span>
+      </div>
+    </header>
+
+    <div id="app-status" class="status" role="status" aria-live="polite">Starting RaceCoach…</div>
+
+    <section class="load-panel" aria-label="Load telemetry">
+      <div class="file-field">
+        <label for="reference-file">Reference lap CSV</label>
+        <input id="reference-file" type="file" accept=".csv,text/csv" />
+      </div>
+      <div class="file-field">
+        <label for="practice-file">Practice lap CSV</label>
+        <input id="practice-file" type="file" accept=".csv,text/csv" />
+      </div>
+      <button id="analyze-button" class="button button-primary" type="button">Analyze laps</button>
+      <button id="load-demo-button" class="button" type="button">Load demo</button>
+      <label class="inline-field" for="max-gap">Gap flag (m)
+        <input id="max-gap" type="number" min="1" max="1000" step="1" value="25" />
+      </label>
+      <div class="lap-fields">
+        <label for="reference-lap">Ref lap</label>
+        <select id="reference-lap" disabled></select>
+        <label for="practice-lap">Practice lap</label>
+        <select id="practice-lap" disabled></select>
+      </div>
+      <div class="download-links">
+        <a href="/api/demo/reference.csv" download>Demo reference CSV</a>
+        <a href="/api/demo/practice.csv" download>Demo practice CSV</a>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <aside class="panel zone-panel" aria-label="Braking zones">
+        <div class="panel-heading">
+          <h2>Braking zones</h2>
+          <span id="zone-count" class="muted">—</span>
+        </div>
+        <div id="zone-list" class="zone-list"></div>
+      </aside>
+
+      <section class="charts-panel" aria-label="Telemetry charts">
+        <div class="chart-block">
+          <div class="chart-title"><span>Speed</span><span class="legend"><i class="swatch ref"></i>reference <i class="swatch prac"></i>practice</span></div>
+          <canvas id="speed-chart" height="180"></canvas>
+        </div>
+        <div class="chart-block">
+          <div class="chart-title"><span>Pedals</span><span class="legend">solid throttle · dashed brake</span></div>
+          <canvas id="pedal-chart" height="150"></canvas>
+        </div>
+        <div class="chart-block">
+          <div class="chart-title"><span>Time delta by distance</span><span class="legend">practice − reference</span></div>
+          <canvas id="delta-chart" height="130"></canvas>
+        </div>
+        <div class="replay-bar">
+          <button id="replay-reset" class="button" type="button">Reset</button>
+          <button id="replay-play" class="button button-primary" type="button">Play</button>
+          <label class="inline-field" for="replay-speed">Speed
+            <select id="replay-speed">
+              <option value="1">1×</option>
+              <option value="2">2×</option>
+              <option value="4">4×</option>
+              <option value="8">8×</option>
+              <option value="16">16×</option>
+              <option value="32" selected>32×</option>
+            </select>
+          </label>
+          <input id="replay-distance" class="scrubber" type="range" min="0" max="100" step="0.1" value="0" aria-label="Replay distance" />
+          <span id="replay-readout" class="readout">0 m / 0 m</span>
+          <span id="replay-status" class="muted">Ready</span>
+        </div>
+      </section>
+
+      <aside class="panel detail-panel" aria-label="Selected section">
+        <div class="panel-heading">
+          <h2 id="detail-title">Selected section</h2>
+          <span id="detail-status" class="badge badge-muted">—</span>
+        </div>
+        <p id="detail-message" class="feedback">Load the demo to see coaching feedback.</p>
+        <div class="metric-grid">
+          <div class="metric">
+            <span class="metric-label">Brake start</span>
+            <span id="detail-brake-ref" class="metric-value">—</span>
+            <span id="detail-brake-prac" class="metric-sub">practice —</span>
+            <span id="detail-brake-delta" class="metric-delta">—</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Minimum speed</span>
+            <span id="detail-speed-ref" class="metric-value">—</span>
+            <span id="detail-speed-prac" class="metric-sub">practice —</span>
+            <span id="detail-speed-delta" class="metric-delta">—</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Section time</span>
+            <span id="detail-time-ref" class="metric-value">—</span>
+            <span id="detail-time-prac" class="metric-sub">practice —</span>
+            <span id="detail-time-delta" class="metric-delta">—</span>
+          </div>
+        </div>
+        <div id="detail-notes" class="notes"></div>
+        <div class="quality">
+          <div class="panel-heading"><h3>Data quality</h3><span id="quality-count" class="muted">—</span></div>
+          <div id="gap-list" class="gap-list"></div>
+        </div>
+      </aside>
+    </main>
+
+    <section class="messages-panel" aria-label="Replay coaching messages">
+      <div class="panel-heading">
+        <h2>Replay messages</h2>
+        <span id="message-count" class="muted">0</span>
+      </div>
+      <div id="messages" class="messages">
+        <p id="messages-empty" class="muted">Press Play to receive one coaching message per completed braking zone.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>RaceCoach reads CSV only. No external requests, no telemetry upload.</span>
+      <span>Assetto Corsa / ACC shared-memory capture: see the <code>ac-shared-memory</code> repo.</span>
+    </footer>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

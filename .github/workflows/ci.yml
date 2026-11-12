@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+          - name: macos-arm64
+            os: macos-15
+          - name: macos-x64
+            os: macos-15-intel
+    defaults:
+      run:
+        shell: bash
+    env:
+      RACECOACH_OFFLINE: "1"
+      FRESH_CLONE: ${{ runner.temp }}/fresh clone/racecoach
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.7"
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Fresh clone into a path containing spaces
+        run: |
+          set -euo pipefail
+          if command -v cygpath >/dev/null 2>&1; then
+            clone_path="$(cygpath -u "$FRESH_CLONE")"
+            workspace="$(cygpath -u "$GITHUB_WORKSPACE")"
+          else
+            clone_path="$FRESH_CLONE"
+            workspace="$GITHUB_WORKSPACE"
+          fi
+          rm -rf "$clone_path"
+          mkdir -p "$(dirname "$clone_path")"
+          git clone --no-hardlinks "$workspace" "$clone_path"
+          test -f "$clone_path/pyproject.toml"
+
+      - name: Sync dependencies
+        working-directory: ${{ env.FRESH_CLONE }}
+        run: uv sync --all-groups
+
+      - name: Record environment
+        working-directory: ${{ env.FRESH_CLONE }}
+        run: uv run python scripts/ci_environment.py | tee environment.txt
+
+      - name: Offline unit and API tests
+        working-directory: ${{ env.FRESH_CLONE }}
+        run: uv run pytest -q
+
+      - name: App smoke test
+        working-directory: ${{ env.FRESH_CLONE }}
+        run: uv run python scripts/smoke.py
+
+      - name: Install headless Chromium
+        working-directory: ${{ env.FRESH_CLONE }}
+        run: uv run playwright install chromium
+
+      - name: Browser UI smoke test
+        working-directory: ${{ env.FRESH_CLONE }}
+        run: uv run python scripts/ui_smoke.py
+
+      - name: Upload environment artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: racecoach-environment-${{ matrix.name }}
+          path: ${{ env.FRESH_CLONE }}/environment.txt
+          if-no-files-found: warn
+          retention-days: 14
