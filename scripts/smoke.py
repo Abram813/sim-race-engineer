@@ -28,6 +28,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 def free_port() -> int:
@@ -37,12 +38,12 @@ def free_port() -> int:
 
 
 def get_json(url: str) -> dict:
-    with urllib.request.urlopen(url, timeout=5) as response:
+    with OPENER.open(url, timeout=5) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
 def get_text(url: str) -> str:
-    with urllib.request.urlopen(url, timeout=10) as response:
+    with OPENER.open(url, timeout=10) as response:
         return response.read().decode("utf-8")
 
 
@@ -53,7 +54,7 @@ def post_json(url: str, payload: dict) -> dict:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=20) as response:
+    with OPENER.open(request, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
 
 

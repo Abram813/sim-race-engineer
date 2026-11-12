@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import platform
+import socketserver
 import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -32,6 +33,15 @@ class RaceCoachServer(ThreadingHTTPServer):
         super().__init__(address, handler)
         self.offline = offline
         self.quiet = quiet
+
+    def server_bind(self) -> None:
+        # HTTPServer.server_bind calls socket.getfqdn(host), which can block for
+        # many seconds on offline/CI macOS runners.  The app only needs a
+        # loopback URL, so use the numeric host directly.
+        socketserver.TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = host
+        self.server_port = port
 
 
 class Handler(BaseHTTPRequestHandler):

@@ -28,7 +28,7 @@ jobs:
         shell: bash
     env:
       RACECOACH_OFFLINE: "1"
-      FRESH_CLONE: ${{ github.workspace }}/../fresh clone/racecoach
+      FRESH_CLONE: ${{ github.workspace }}/fresh clone/racecoach
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
