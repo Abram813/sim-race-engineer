@@ -153,9 +153,11 @@ The GitHub Actions workflow runs a fresh clone in a path containing spaces on Wi
 
 | Runner | OS / CPU architecture | Python | uv | Unit + API tests | App smoke | UI smoke |
 | --- | --- | --- | --- | --- | --- | --- |
-| `windows-latest` | Windows Server, x86_64 | 3.12 | 0.13.7 | pending CI | pending CI | pending CI |
-| `macos-15` | macOS 15, arm64 (Apple Silicon) | 3.12 | 0.13.7 | pending CI | pending CI | pending CI |
-| `macos-15-intel` | macOS 15, x86_64 (Intel) | 3.12 | 0.13.7 | pending CI | pending CI | pending CI |
+| `windows-latest` | Windows Server 2025, x86_64 (AMD64) | 3.12.10 | 0.13.7 | pass | pass | pass |
+| `macos-15` | macOS 15.8.2, arm64 (Apple Silicon) | 3.12.10 | 0.13.7 | pass | pass | pass |
+| `macos-15-intel` | macOS 15.7.9, x86_64 (Intel) | 3.12.10 | 0.13.7 | pass | pass | pass |
+
+CI run: [43294792911](https://github.com/Abram813/sim-race-engineer/actions/runs/43294792911), commit `79e34d5`. The environment artifacts show the executable path inside `fresh clone/racecoach`, confirming the path-with-spaces run. Verified Mac architectures: Apple Silicon arm64 and Intel x86_64.
 
 Local verification on the development machine (not a CI claim):
 
