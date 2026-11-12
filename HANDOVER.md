@@ -9,7 +9,7 @@ Date: 2026-11-12
 | RaceCoach app | <https://github.com/Abram813/sim-race-engineer> | `/Users/abram/Documents/f1-lab/sim-race-engineer` | `main` |
 | Windows capture agent | <https://github.com/Abram813/ac-shared-memory> | `/Users/abram/Documents/f1-lab/ac-shared-memory` | `main` |
 
-Final documentation commits: `87d5de6` (RaceCoach) and `43a2c3e` (capture).
+Documentation commits at verification time: `87d5de6` (RaceCoach) and `43a2c3e` (capture). Later documentation-only commits do not change the measured results.
 Verification CI runs: [RaceCoach 43295300842](https://github.com/Abram813/sim-race-engineer/actions/runs/43295300842) and [capture 43295553422](https://github.com/Abram813/ac-shared-memory/actions/runs/43295553422).
 
 ## Launch commands
