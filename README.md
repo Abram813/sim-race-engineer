@@ -149,7 +149,7 @@ uv run python scripts/ui_smoke.py
 
 ## Verified environments
 
-The GitHub Actions workflow runs a fresh clone in a path containing spaces on Windows and macOS. The table below is updated from the workflow artifacts for the current commit.
+The GitHub Actions workflow runs a fresh clone in a path containing spaces on Windows and macOS. The table below records the verification run used for this handover; later README-only commits do not change the measured results.
 
 | Runner | OS / CPU architecture | Python | uv | Unit + API tests | App smoke | UI smoke |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -157,13 +157,15 @@ The GitHub Actions workflow runs a fresh clone in a path containing spaces on Wi
 | `macos-15` | macOS 15.8.2, arm64 (Apple Silicon) | 3.12.10 | 0.13.7 | pass | pass | pass |
 | `macos-15-intel` | macOS 15.7.9, x86_64 (Intel) | 3.12.10 | 0.13.7 | pass | pass | pass |
 
-CI run: [43294792911](https://github.com/Abram813/sim-race-engineer/actions/runs/43294792911), commit `79e34d5`. The environment artifacts show the executable path inside `fresh clone/racecoach`, confirming the path-with-spaces run. Verified Mac architectures: Apple Silicon arm64 and Intel x86_64.
+CI run: [43295300842](https://github.com/Abram813/sim-race-engineer/actions/runs/43295300842), commit `1eea73c`. The environment artifacts show the executable path inside `fresh clone/racecoach`, confirming the path-with-spaces run. Verified Mac architectures: Apple Silicon arm64 and Intel x86_64.
 
 Local verification on the development machine (not a CI claim):
 
 | OS / CPU architecture | Python | uv | Tests | App smoke | UI smoke |
 | --- | --- | --- | --- | --- | --- |
 | macOS 26.6.2, arm64 (Apple M1 Pro) | 3.14.2 | 0.13.7 | 33 passed | pass | pass |
+
+A second local check cloned the repository into a path containing spaces (`.../fresh clone/racecoach`) and ran the exact README commands: `uv sync --all-groups`, `uv run pytest` (33 passed), `uv run python scripts/smoke.py` (`SMOKE PASS`), and `uv run python scripts/ui_smoke.py` (`UI SMOKE PASS`). The smoke starts the app, loads the demo, changes the selected section, uploads a CSV, and shuts down cleanly; the UI smoke also confirms no external requests.
 
 ## Live capture on Windows
 
